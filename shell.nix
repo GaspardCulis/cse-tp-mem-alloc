@@ -9,5 +9,6 @@ pkgs.mkShellNoCC {
     clang-tools
     lldb
     cmake-language-server
+    bear
   ];
 }
