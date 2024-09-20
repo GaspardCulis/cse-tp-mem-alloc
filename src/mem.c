@@ -11,11 +11,6 @@
 #include "mem_os.h"
 #include "mem_space.h"
 
-typedef struct mem_header_s {
-  int size;
-  struct mem_free_block_s *first;
-} mem_header_t;
-
 //-------------------------------------------------------------
 // mem_init
 //-------------------------------------------------------------
