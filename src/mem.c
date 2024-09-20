@@ -8,6 +8,9 @@
 
 #include <assert.h>
 
+#include "mem_os.h"
+#include "mem_space.h"
+
 typedef struct mem_header_s {
   int size;
   struct mem_free_block_s *first;
@@ -21,8 +24,12 @@ typedef struct mem_header_s {
  * If already init it will re-init.
  **/
 void mem_init() {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
+  assert(sizeof(mem_header_t) < mem_space_get_size());
+
+  mem_header_t *header = mem_space_get_addr();
+
+  header->size = mem_space_get_size();
+  header->first = (mem_free_block_t *)(header + sizeof(mem_header_t));
 }
 
 //-------------------------------------------------------------
