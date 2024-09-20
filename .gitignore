@@ -31,3 +31,5 @@ tests_c/test_fusion
 tests_c/test_fusion_bzero
 tests_c/test_init
 /build*
+.cache
+compile_commands.json
