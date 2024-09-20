@@ -22,4 +22,4 @@ void mem_show(void (*print)(void *, size_t, int free));
 /* Enable logging for debugging */
 void mem_set_logging(int enabled);
 
-#endif //MEM_H
+#endif  // MEM_H
