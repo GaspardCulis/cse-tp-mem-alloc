@@ -7,10 +7,10 @@
 #ifndef MEM_OS_H
 #define MEM_OS_H
 
-//include stdlib pour definition du type size_t
+// include stdlib pour definition du type size_t
 #include <stdlib.h>
 
-//Definie la structure the bloc libre
+// Definie la structure the bloc libre
 typedef struct mem_free_block_s mem_free_block_t;
 
 /* -----------------------------------------------*/

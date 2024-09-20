@@ -7,8 +7,8 @@
 #ifndef MEM_SPACE_H
 #define MEM_SPACE_H
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(DEBUG)
 #define debug(...) fprintf(stderr, __VA_ARGS__)
@@ -21,4 +21,4 @@ void *mem_space_get_addr(void);
 /** Retourne la taille de l'espace mémoire à utilier dans l'allocateur. **/
 size_t mem_space_get_size(void);
 
-#endif //MEM_SPACE_H
+#endif  // MEM_SPACE_H
