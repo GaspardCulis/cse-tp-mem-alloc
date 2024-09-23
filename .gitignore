@@ -34,3 +34,4 @@ tests_c/test_init
 /build*
 .cache
 compile_commands.json
+.envrc
