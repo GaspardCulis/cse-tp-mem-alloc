@@ -6,6 +6,7 @@ googletest*
 *.tar.gz
 *.tar.bz2
 .vscode
+.helix
 *.o
 *.a
 *.so
