@@ -5,14 +5,11 @@
 //------------------------------------------------------------------------------
 
 #include "mem.h"
-#include "mem_space.h"
-#include "mem_os.h"
+
 #include <assert.h>
 
-typedef struct mem_header_s {
-  int size;
-  struct mem_free_block_s* first;
-} mem_header_t;
+#include "mem_os.h"
+#include "mem_space.h"
 
 //-------------------------------------------------------------
 // mem_init
@@ -20,14 +17,14 @@ typedef struct mem_header_s {
 /**
  * Initialize the memory allocator.
  * If already init it will re-init.
-**/
+ **/
 void mem_init() {
   assert(sizeof(mem_header_t) < mem_space_get_size());
-  
-  mem_header_t* header = mem_space_get_addr();
-  
+
+  mem_header_t *header = mem_space_get_addr();
+
   header->size = mem_space_get_size();
-  header->first = (mem_free_block_t*)(header + sizeof(mem_header_t));
+  header->first = (mem_free_block_t *)(header + sizeof(mem_header_t));
 }
 
 //-------------------------------------------------------------
@@ -35,21 +32,20 @@ void mem_init() {
 //-------------------------------------------------------------
 /**
  * Allocate a bloc of the given size.
-**/
+ **/
 void *mem_alloc(size_t size) {
-	//TODO: implement
-	assert(! "NOT IMPLEMENTED !");
-    return NULL;
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
+  return NULL;
 }
 
 //-------------------------------------------------------------
 // mem_get_size
 //-------------------------------------------------------------
-size_t mem_get_size(void * zone)
-{
-    //TODO: implement
-	assert(! "NOT IMPLEMENTED !");
-    return 0;
+size_t mem_get_size(void *zone) {
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
+  return 0;
 }
 
 //-------------------------------------------------------------
@@ -57,10 +53,10 @@ size_t mem_get_size(void * zone)
 //-------------------------------------------------------------
 /**
  * Free an allocaetd bloc.
-**/
+ **/
 void mem_free(void *zone) {
-    //TODO: implement
-	assert(! "NOT IMPLEMENTED !");
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
 }
 
 //-------------------------------------------------------------
@@ -68,36 +64,39 @@ void mem_free(void *zone) {
 // mem_show
 //-------------------------------------------------------------
 void mem_show(void (*print)(void *, size_t, int free)) {
-    //TODO: implement
-	assert(! "NOT IMPLEMENTED !");
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
 }
 
 //-------------------------------------------------------------
 // mem_fit
 //-------------------------------------------------------------
 void mem_set_fit_handler(mem_fit_function_t *mff) {
-	//TODO: implement
-	assert(! "NOT IMPLEMENTED !");
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
 }
 
 //-------------------------------------------------------------
 // Stratégies d'allocation
 //-------------------------------------------------------------
-mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block, size_t wanted_size) {
-    //TODO: implement
-	assert(! "NOT IMPLEMENTED !");
-	return NULL;
+mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
+                                size_t wanted_size) {
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
+  return NULL;
 }
 //-------------------------------------------------------------
-mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block, size_t wanted_size) {
-    //TODO: implement
-	assert(! "NOT IMPLEMENTED !");
-	return NULL;
+mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
+                               size_t wanted_size) {
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
+  return NULL;
 }
 
 //-------------------------------------------------------------
-mem_free_block_t *mem_worst_fit(mem_free_block_t *first_free_block, size_t wanted_size) {
-    //TODO: implement
-	assert(! "NOT IMPLEMENTED !");
-	return NULL;
+mem_free_block_t *mem_worst_fit(mem_free_block_t *first_free_block,
+                                size_t wanted_size) {
+  // TODO: implement
+  assert(!"NOT IMPLEMENTED !");
+  return NULL;
 }

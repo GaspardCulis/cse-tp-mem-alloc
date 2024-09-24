@@ -6,6 +6,7 @@ googletest*
 *.tar.gz
 *.tar.bz2
 .vscode
+.helix
 *.o
 *.a
 *.so
@@ -33,3 +34,4 @@ tests_c/test_init
 /build*
 .cache
 compile_commands.json
+.envrc

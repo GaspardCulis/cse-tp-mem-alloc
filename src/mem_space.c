@@ -15,12 +15,6 @@
 
 static char memory[MEMORY_SIZE];
 
-void *mem_space_get_addr()
-{
-    return memory;
-}
+void *mem_space_get_addr() { return memory; }
 
-size_t mem_space_get_size()
-{
-    return MEMORY_SIZE; 
-}
+size_t mem_space_get_size() { return MEMORY_SIZE; }
