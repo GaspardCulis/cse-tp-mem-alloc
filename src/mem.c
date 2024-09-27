@@ -123,7 +123,7 @@ void mem_show(void (*print)(void *, size_t, int free)) {
   while(current != NULL) {
     // Compute the space between the current free block and the previous one
     // It will be considered as the occupied block
-    size_t occupied_size = current - last;
+    size_t occupied_size = (void *)current - (void *)last;
     if(occupied_size != 0) print(last, occupied_size, 0);
 
     // Print current free block
