@@ -20,6 +20,7 @@ void mem_init(void);
 typedef struct mem_free_block_s {
   size_t size;                    // taille du bloc courant
   struct mem_free_block_s *next;  // pointeur vers le bloc memoire libre suivant
+  struct mem_free_block_s *prev;  // poinet to the previous free block
 } mem_free_block_t;
 
 // Définition du type mem_fit_function_t

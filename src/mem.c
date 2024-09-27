@@ -39,8 +39,47 @@ void mem_init() {
  * Allocate a bloc of the given size.
  **/
 void *mem_alloc(size_t size) {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
+  // assert(!"NOT IMPLEMENTED !");
+  mem_header_t *header = mem_space_get_addr();
+  size_t alloc_size = size + sizeof(mem_busy_block_t);
+
+  // get the free block
+  mem_free_block_t *alloc_block =
+      header->fit_function(header->first, alloc_size);
+
+  if(alloc_block != NULL) {
+    // case to split the free block in busy and free
+    if(alloc_block->size - alloc_size >
+       sizeof(mem_free_block_t) + sizeof(mem_busy_block_t)) {
+      mem_free_block_t *split_block = alloc_block + alloc_size;
+
+      // put the split block to the right
+      if(split_block->prev != NULL)
+        split_block->prev = alloc_block->prev;
+      else
+        // update header
+        header->first = alloc_block->prev;
+
+      split_block->next = alloc_block->next;
+      split_block->size =
+          alloc_block->size - alloc_size - sizeof(mem_free_block_t);
+
+      if(alloc_block->prev != NULL)
+        alloc_block->prev->next = split_block;  // relink memory
+      else {
+        // update header
+        header->first = split_block;
+      }
+    } else {
+      // case entire allocation
+      alloc_block->prev->next = alloc_block->next;  // relink memory
+    }
+    mem_busy_block_t *new_busy_block =
+        (mem_busy_block_t *)alloc_block;  // recast free to busy
+    new_busy_block->size = size;
+
+    return new_busy_block + sizeof(mem_busy_block_t);  // give user memory
+  }
   return NULL;
 }
 
