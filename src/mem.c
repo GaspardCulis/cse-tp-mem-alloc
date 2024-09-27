@@ -118,13 +118,13 @@ void mem_show(void (*print)(void *, size_t, int free)) {
   // We consider the header as an occupied block
   print(header, sizeof(mem_header_t), 0);
 
-  void *last = header + sizeof(mem_header_t);
+  mem_free_block_t *last = (void *)header + sizeof(mem_header_t);
   mem_free_block_t *current = header->first;
   while(current != NULL) {
     // Compute the space between the current free block and the previous one
     // It will be considered as the occupied block
-    size_t occupied_size = (void *)current - last;
-    if(occupied_size != 0) print(last, (void *)current - last, 0);
+    size_t occupied_size = current - last;
+    if(occupied_size != 0) print(last, occupied_size, 0);
 
     // Print current free block
     print(current, current->size, 1);
