@@ -97,7 +97,15 @@ mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
 //-------------------------------------------------------------
 mem_free_block_t *mem_worst_fit(mem_free_block_t *first_free_block,
                                 size_t wanted_size) {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
-  return NULL;
+  mem_free_block_t *current_block = first_free_block;  // iterate through memory
+  mem_free_block_t *worst_fit = NULL;
+  size_t worst_size = wanted_size;  // at least must have this size
+  while(current_block != NULL) {
+    if(current_block->size >= worst_size) {
+      worst_fit = current_block;
+      worst_size = current_block->size;
+    }
+    current_block = current_block->next;
+  }
+  return worst_fit;
 }
