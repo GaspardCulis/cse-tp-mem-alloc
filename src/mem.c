@@ -81,9 +81,10 @@ void mem_set_fit_handler(mem_fit_function_t *mff) {
 //-------------------------------------------------------------
 mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
                                 size_t wanted_size) {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
-  return NULL;
+  mem_free_block_t *current_block = first_free_block;
+  while(current_block->size < wanted_size && current_block != NULL)
+    current_block = current_block->next;
+  return current_block;
 }
 //-------------------------------------------------------------
 mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
