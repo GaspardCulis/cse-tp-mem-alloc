@@ -66,8 +66,24 @@ void mem_free(void *zone) {
 // mem_show
 //-------------------------------------------------------------
 void mem_show(void (*print)(void *, size_t, int free)) {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
+  mem_header_t *header = mem_space_get_addr();
+  mem_free_block_t *current = header->first;
+  // Not sexy, but we're doing a check 7 lines down
+  while(1) {
+    // Print current free block
+    print(current, current->size, 1);
+
+    // Compute the space between the current free block and the next one
+    // It will be considered as the occupied block
+    if(current->next != NULL) {
+      size_t size_between_free = current - current->next;
+      print(current + current->size, size_between_free, 0);
+    } else {
+      break;
+    }
+
+    current = current->next;
+  }
 }
 
 //-------------------------------------------------------------
