@@ -29,6 +29,10 @@ typedef mem_free_block_t *(mem_fit_function_t)(mem_free_block_t *, size_t);
 // Definition la structure du bloc occupé
 typedef struct mem_busy_block_s {
   size_t size;  // taille du bloc courant
+#if defined (DEBUG)
+#define BUSY_BLOCK_INTEGRITY_SIGNATURE 0x69042
+  unsigned int integrity_signature; 
+#endif
 } mem_busy_block_t;
 
 // Definition la structure du header de la zone memoire

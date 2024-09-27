@@ -45,9 +45,14 @@ void *mem_alloc(size_t size) {
 // mem_get_size
 //-------------------------------------------------------------
 size_t mem_get_size(void *zone) {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
-  return 0;
+  mem_busy_block_t *busy_block = zone - sizeof(mem_busy_block_t);
+
+#if defined(DEBUG)
+  // Check if the `mem_busy_block_s` we got from the `zone` pointer is valid
+  assert(busy_block->integrity_signature == BUSY_BLOCK_INTEGRITY_SIGNATURE);
+#endif
+
+  return busy_block->size;
 }
 
 //-------------------------------------------------------------
