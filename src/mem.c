@@ -74,8 +74,8 @@ void mem_show(void (*print)(void *, size_t, int free)) {
 // mem_fit
 //-------------------------------------------------------------
 void mem_set_fit_handler(mem_fit_function_t *mff) {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
+  mem_header_t *header = mem_space_get_addr();
+  header->fit_function = mff;
 }
 
 //-------------------------------------------------------------
