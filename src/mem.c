@@ -91,9 +91,23 @@ mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
 //-------------------------------------------------------------
 mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
                                size_t wanted_size) {
-  // TODO: implement
-  assert(!"NOT IMPLEMENTED !");
-  return NULL;
+  mem_free_block_t *best_fit = NULL;
+  mem_free_block_t *current_fit = first_free_block;
+  // TODO: Think about overflows
+  long best_fit_score = current_fit->size - wanted_size;
+  while(current_fit != NULL && best_fit_score == 0) {
+    long current_fit_score = current_fit->size - wanted_size;
+
+    // If fit_score is negative, then the current free block is too small
+    // Else the greater it is, the more space is left unused
+    if(current_fit_score > 0 && current_fit_score < best_fit_score) {
+      best_fit = current_fit;
+      best_fit_score = current_fit_score;
+    }
+
+    current_fit = current_fit->next;
+  }
+  return best_fit;
 }
 
 //-------------------------------------------------------------
