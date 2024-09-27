@@ -23,8 +23,8 @@ void mem_init() {
 
   mem_header_t *header = mem_space_get_addr();
 
-  header->size = mem_space_get_size();
-  header->first = (mem_free_block_t *)(header + sizeof(mem_header_t));
+  header->size = mem_space_get_size() - sizeof(mem_header_t);
+  header->first = (void *)header + sizeof(mem_header_t);
   header->first->next = header->first->prev = NULL;
   header->first->size =
       mem_space_get_size() - sizeof(mem_header_t) - sizeof(mem_free_block_t);
