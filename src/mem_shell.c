@@ -114,6 +114,7 @@ int main(int argc, char **argv) {
         aide();
         break;
       case 'q':
+      case EOF:
         exit(0);
       default:
         fprintf(stderr, "Commande inconnue !\n");
