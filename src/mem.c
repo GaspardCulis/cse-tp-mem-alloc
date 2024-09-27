@@ -25,6 +25,9 @@ void mem_init() {
 
   header->size = mem_space_get_size();
   header->first = (mem_free_block_t *)(header + sizeof(mem_header_t));
+  header->first->next = header->first->prev = NULL;
+  header->first->size =
+      mem_space_get_size() - sizeof(mem_header_t) - sizeof(mem_free_block_t);
   header->fit_function =
       mem_first_fit;  // TODO: Proper default definition in mem_os.h
 }
