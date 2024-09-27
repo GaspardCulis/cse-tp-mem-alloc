@@ -7,5 +7,6 @@ with pkgs;
       lldb
       cmake-language-server
       bear
+      gdb
     ];
   }
