@@ -39,7 +39,7 @@ void mem_init() {
  * Allocate a bloc of the given size.
  **/
 void *mem_alloc(size_t size) {
-  // assert(!"NOT IMPLEMENTED !");
+  // get header
   mem_header_t *header = mem_space_get_addr();
   size_t alloc_size = size + sizeof(mem_busy_block_t);
 
@@ -51,10 +51,9 @@ void *mem_alloc(size_t size) {
     // case to split the free block in busy and free
     if(alloc_block->size - alloc_size >
        sizeof(mem_free_block_t) + sizeof(mem_busy_block_t)) {
-      mem_free_block_t *split_block = alloc_block + alloc_size;
-
-      // put the split block to the right
-      if(split_block->prev != NULL)
+      mem_free_block_t *split_block = (void *)alloc_block + alloc_size;
+      // put the free split block to the right
+      if(alloc_block->prev != NULL)
         split_block->prev = alloc_block->prev;
       else
         // update header
@@ -65,7 +64,7 @@ void *mem_alloc(size_t size) {
           alloc_block->size - alloc_size - sizeof(mem_free_block_t);
 
       if(alloc_block->prev != NULL)
-        alloc_block->prev->next = split_block;  // relink memory
+        (alloc_block->prev)->next = split_block;  // relink memory
       else {
         // update header
         header->first = split_block;
@@ -78,7 +77,8 @@ void *mem_alloc(size_t size) {
         (mem_busy_block_t *)alloc_block;  // recast free to busy
     new_busy_block->size = size;
 
-    return new_busy_block + sizeof(mem_busy_block_t);  // give user memory
+    return (void *)new_busy_block +
+           sizeof(mem_busy_block_t);  // give user memory
   }
   return NULL;
 }
@@ -148,7 +148,7 @@ void mem_set_fit_handler(mem_fit_function_t *mff) {
 mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
                                 size_t wanted_size) {
   mem_free_block_t *current_block = first_free_block;
-  while(current_block->size < wanted_size && current_block != NULL)
+  while(current_block != NULL && current_block->size < wanted_size)
     current_block = current_block->next;
   return current_block;
 }
