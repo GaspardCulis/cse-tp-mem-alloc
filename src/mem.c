@@ -118,19 +118,28 @@ void mem_show(void (*print)(void *, size_t, int free)) {
   // We consider the header as an occupied block
   print(header, sizeof(mem_header_t), 0);
 
-  mem_free_block_t *last = (void *)header + sizeof(mem_header_t);
-  mem_free_block_t *current = header->first;
-  while(current != NULL) {
-    // Compute the space between the current free block and the previous one
-    // It will be considered as the occupied block
-    size_t occupied_size = (void *)current - (void *)last;
-    if(occupied_size != 0) print(last, occupied_size, 0);
+  void *next_block = (void *)header + sizeof(mem_header_t);
+  mem_free_block_t *next_free = header->first;
+  while(next_free != NULL) {
+    if(next_free != next_block) {
+      // There is a gap between the two blocks addresses, should be a busy_block
+      mem_busy_block_t *busy_block = next_block;
+      // Tant que l'on a pas atteint le prochain block de mémoire libre
+      while((void *)busy_block != (void *)next_free) {
+        size_t total_block_size = busy_block->size + sizeof(mem_busy_block_t);
+        // Affichage du block
+        print(busy_block, total_block_size, 0);
+        // Get next busy block
+        busy_block = (void *)busy_block + total_block_size;
+      }
+    }
 
+    size_t total_block_size = next_free->size + sizeof(mem_free_block_t);
     // Print current free block
-    print(current, current->size, 1);
+    print(next_free, total_block_size, 1);
 
-    last = current;
-    current = current->next;
+    next_block = (void *)next_free + total_block_size;
+    next_free = next_free->next;
   }
 }
 
