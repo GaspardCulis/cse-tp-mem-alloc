@@ -97,17 +97,27 @@ size_t mem_get_size(void *zone) {
   return busy_block->size;
 }
 
+/// An iterator control struct over the content of the memory.
+/// Constructed using `mem_iterator_init`
 typedef struct mem_iter_s {
+  /// The block directly next to the previous one, could be free or busy
   void *next_block;
+  /// The next free block
   mem_free_block_t *next_free_block;
 } mem_iter_t;
 
+/// The item type returned by the `mem_iter_next` function.
+/// Represents a block of memory
 typedef struct mem_iter_item_s {
+  /// The address of the block, including its control struct
   void *addr;
+  /// The size of the block, including the size of its control struct
   size_t size;
+  /// Wether the block is free or not, 0 if allocated, 1 if free
   char free;
 } mem_iter_item_t;
 
+/// Returns a new `mem_iter_t` initialized at the beginning of the memory
 mem_iter_t mem_iterator_init() {
   mem_header_t *header = mem_space_get_addr();
 
@@ -118,6 +128,8 @@ mem_iter_t mem_iterator_init() {
   return iterator;
 }
 
+/// Returns the next block in memory as a `mem_iter_item_s`.
+/// Mutates `iterator` parameter.
 // TODO: Handle cases where the last block is a busy_block
 mem_iter_item_t mem_iter_next(mem_iter_t *iterator) {
   mem_iter_item_t item;
