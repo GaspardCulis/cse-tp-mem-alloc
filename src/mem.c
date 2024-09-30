@@ -97,6 +97,48 @@ size_t mem_get_size(void *zone) {
   return busy_block->size;
 }
 
+typedef struct mem_iter_s {
+  void *next_block;
+  mem_free_block_t *next_free_block;
+} mem_iter_t;
+
+typedef struct mem_iter_item_s {
+  void *addr;
+  size_t size;
+  char free;
+} mem_iter_item_t;
+
+mem_iter_t mem_iterator_init() {
+  mem_header_t *header = mem_space_get_addr();
+
+  mem_iter_t iterator;
+  iterator.next_block = (void *)header + sizeof(mem_header_t);
+  iterator.next_free_block = header->first;
+
+  return iterator;
+}
+
+// TODO: Handle cases where the last block is a busy_block
+mem_iter_item_t mem_iter_next(mem_iter_t *iterator) {
+  mem_iter_item_t item;
+
+  item.addr = iterator->next_block;
+  if(iterator->next_block == (void *)iterator->next_free_block) {
+    item.size = iterator->next_free_block->size + sizeof(mem_free_block_t);
+    item.free = 1;
+
+    iterator->next_free_block = iterator->next_free_block->next;
+  } else {
+    item.size = ((mem_busy_block_t *)iterator->next_block)->size +
+                sizeof(mem_busy_block_t);
+    item.free = 0;
+  }
+
+  iterator->next_block = item.addr + item.size;
+
+  return item;
+}
+
 //-------------------------------------------------------------
 // mem_free
 //-------------------------------------------------------------
