@@ -160,28 +160,10 @@ void mem_show(void (*print)(void *, size_t, int free)) {
   // We consider the header as an occupied block
   print(header, sizeof(mem_header_t), 0);
 
-  void *next_block = (void *)header + sizeof(mem_header_t);
-  mem_free_block_t *next_free = header->first;
-  while(next_free != NULL) {
-    if(next_free != next_block) {
-      // There is a gap between the two blocks addresses, should be a busy_block
-      mem_busy_block_t *busy_block = next_block;
-      // Tant que l'on a pas atteint le prochain block de mémoire libre
-      while((void *)busy_block != (void *)next_free) {
-        size_t total_block_size = busy_block->size + sizeof(mem_busy_block_t);
-        // Affichage du block
-        print(busy_block, total_block_size, 0);
-        // Get next busy block
-        busy_block = (void *)busy_block + total_block_size;
-      }
-    }
-
-    size_t total_block_size = next_free->size + sizeof(mem_free_block_t);
-    // Print current free block
-    print(next_free, total_block_size, 1);
-
-    next_block = (void *)next_free + total_block_size;
-    next_free = next_free->next;
+  mem_iter_t iterator = mem_iterator_init();
+  while(iterator.next_free_block != NULL) {
+    mem_iter_item_t item = mem_iter_next(&iterator);
+    print(item.addr, item.size, item.free);
   }
 }
 
