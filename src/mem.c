@@ -26,8 +26,7 @@ void mem_init() {
   header->size = mem_space_get_size() - sizeof(mem_header_t);
   header->first = (void *)header + sizeof(mem_header_t);
   header->first->next = header->first->prev = NULL;
-  header->first->size =
-      mem_space_get_size() - sizeof(mem_header_t) - sizeof(mem_free_block_t);
+  header->first->size = mem_space_get_size() - sizeof(mem_header_t);
   header->fit_function =
       mem_first_fit;  // TODO: Proper default definition in mem_os.h
 }
@@ -52,8 +51,9 @@ void *mem_alloc(size_t size) {
 
   // total size of allocation
   size_t alloc_size = size + sizeof(mem_busy_block_t);
-  // size control, no loss of busy_block during free()
-  if(alloc_size < 24) alloc_size = 24;
+  // size control, no loss of busy_block during future free
+  if(alloc_size < sizeof(mem_free_block_t))
+    alloc_size = sizeof(mem_free_block_t);
 
   // get the free block
   mem_free_block_t *alloc_block =
@@ -63,14 +63,13 @@ void *mem_alloc(size_t size) {
   if(alloc_block != NULL) {
     mem_busy_block_t *new_busy_block;
     /* case to split the free block in busy and free
-        -- splitted size at least = free_block size
+        -- split size at least = free_block
     */
     if(alloc_block->size - alloc_size >= sizeof(mem_free_block_t)) {
       // update the size of allocated free_block
       alloc_block->size -= alloc_size;
       //  put the busy block to the right
-      new_busy_block =
-          (void *)alloc_block + sizeof(mem_free_block_t) + alloc_block->size;
+      new_busy_block = (void *)alloc_block + alloc_block->size;
     }
     // case entire allocation
     else {
@@ -86,7 +85,7 @@ void *mem_alloc(size_t size) {
     return (void *)new_busy_block +
            sizeof(mem_busy_block_t);  // give user memory
   }
-  return NULL;  // cannot allocate
+  return NULL;
 }
 
 //-------------------------------------------------------------
@@ -224,7 +223,6 @@ void mem_set_fit_handler(mem_fit_function_t *mff) {
 mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
                                 size_t wanted_size) {
   mem_free_block_t *current_block = first_free_block;
-  // TOFIX: SIZE PROBLEM !!!
   while(current_block != NULL && current_block->size < wanted_size)
     current_block = current_block->next;
   return current_block;
