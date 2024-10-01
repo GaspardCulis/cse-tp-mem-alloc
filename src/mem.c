@@ -39,48 +39,54 @@ void mem_init() {
  * Allocate a bloc of the given size.
  **/
 void *mem_alloc(size_t size) {
+  // TODO: define the behavior for alloc(0)
+  if(size == 0) return NULL;
+
+  // inverse usage, precised in man alloc
+  if(size < 0)
+    size = mem_space_get_size() - size + 1 - sizeof(mem_header_t) -
+           sizeof(mem_busy_block_t);
+
   // get header
   mem_header_t *header = mem_space_get_addr();
+
+  // total size of allocation
   size_t alloc_size = size + sizeof(mem_busy_block_t);
+  // size control, no loss of busy_block during free()
+  if(alloc_size < 24) alloc_size = 24;
 
   // get the free block
   mem_free_block_t *alloc_block =
       header->fit_function(header->first, alloc_size);
 
+  // if size is suitable
   if(alloc_block != NULL) {
-    // case to split the free block in busy and free
-    if(alloc_block->size - alloc_size >
-       sizeof(mem_free_block_t) + sizeof(mem_busy_block_t)) {
-      mem_free_block_t *split_block = (void *)alloc_block + alloc_size;
-      // put the free split block to the right
-      if(alloc_block->prev != NULL)
-        split_block->prev = alloc_block->prev;
-      else
-        // update header
-        header->first = alloc_block->prev;
-
-      split_block->next = alloc_block->next;
-      split_block->size =
-          alloc_block->size - alloc_size - sizeof(mem_free_block_t);
-
-      if(alloc_block->prev != NULL)
-        (alloc_block->prev)->next = split_block;  // relink memory
-      else {
-        // update header
-        header->first = split_block;
-      }
-    } else {
-      // case entire allocation
-      alloc_block->prev->next = alloc_block->next;  // relink memory
+    mem_busy_block_t *new_busy_block;
+    /* case to split the free block in busy and free
+        -- splitted size at least = free_block size
+    */
+    if(alloc_block->size - alloc_size >= sizeof(mem_free_block_t)) {
+      // update the size of allocated free_block
+      alloc_block->size -= alloc_size;
+      //  put the busy block to the right
+      new_busy_block =
+          (void *)alloc_block + sizeof(mem_free_block_t) + alloc_block->size;
     }
-    mem_busy_block_t *new_busy_block =
-        (mem_busy_block_t *)alloc_block;  // recast free to busy
+    // case entire allocation
+    else {
+      // if prev isn't header
+      if(alloc_block->prev != NULL)
+        alloc_block->prev->next = alloc_block->next;  // relink memory
+      else
+        // update header elsewise
+        header->first = alloc_block->next;
+      new_busy_block = (mem_busy_block_t *)alloc_block;  // recast free to busy
+    }
     new_busy_block->size = size;
-
     return (void *)new_busy_block +
            sizeof(mem_busy_block_t);  // give user memory
   }
-  return NULL;
+  return NULL;  // cannot allocate
 }
 
 //-------------------------------------------------------------
@@ -218,6 +224,7 @@ void mem_set_fit_handler(mem_fit_function_t *mff) {
 mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
                                 size_t wanted_size) {
   mem_free_block_t *current_block = first_free_block;
+  // TOFIX: SIZE PROBLEM !!!
   while(current_block != NULL && current_block->size < wanted_size)
     current_block = current_block->next;
   return current_block;
