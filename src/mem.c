@@ -180,22 +180,54 @@ void mem_free(void *zone) {
       if(busy_block_user_addr == zone) {  // Found the block
         mem_free_block_t *new_free = item.addr;
         // Could be NULL, but we handle this case later
-        mem_free_block_t *next_free = iterator.next_free_block;
+        mem_free_block_t *next_free_block = iterator.next_free_block;
 
-        // Re-linking
-        new_free->next = next_free;
-        if(prev_free_block != NULL) {
-          new_free->prev = prev_free_block;
-          assert(prev_free_block->next == next_free);
-          prev_free_block->next = new_free;
+#if defined(DEBUG)
+        // Check if the existing linking is right
+        if(next_free_block != NULL)
+          assert(next_free_block->prev == prev_free_block);
+        if(prev_free_block != NULL)
+          assert(prev_free_block->next == next_free_block);
+#endif
+
+        new_free->size = item.size;
+        void *next_block = item.addr + item.size;
+
+        // Link right
+        if(next_free_block != NULL) {
+          if(next_block == next_free_block) {
+            // The next block is free, merge them by extending `new_free`
+            new_free->size += next_free_block->size;
+            new_free->next = next_free_block->next;
+            if(next_free_block->next != NULL)
+              next_free_block->next->prev = new_free;
+            // We leave the old `next_free` as-is in memory
+          } else {
+            new_free->next = next_free_block;
+            next_free_block->prev = new_free;
+          }
         } else {
+          new_free->next = NULL;
+        }
+
+        // Link left
+        if(prev_free_block != NULL) {
+          void *prev_free_next_block =
+              (void *)prev_free_block + prev_free_block->size;
+          if(prev_free_next_block == new_free) {
+            // The next block is free, merge them by extending `prev_free_block`
+            prev_free_block->next = new_free->next;
+            prev_free_block->size += new_free->size;
+            if(new_free->next != NULL) new_free->next->prev = prev_free_block;
+            // We leave the `new_free` as is in memory
+          } else {
+            new_free->prev = prev_free_block;
+            prev_free_block->next = new_free;
+          }
+        } else {
+          new_free->prev = NULL;
           header->first = new_free;
         }
-        if(next_free != NULL) {
-          assert(next_free->prev == prev_free_block);
-          next_free->prev = new_free;
-        }
-        new_free->size = item.size;
       }
     } else {
       prev_free_block = item.addr;
