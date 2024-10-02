@@ -228,11 +228,18 @@ void mem_free(void *zone) {
           new_free->prev = NULL;
           header->first = new_free;
         }
+
+        // We're done, return
+        return;
       }
     } else {
       prev_free_block = item.addr;
     }
   }
+
+  // If we end-up here then we haven't found a valid `busy_block` to free.
+  // Notify the user
+  printf("Tried to free an invalid/already-freed pointer\n");
 }
 
 //-------------------------------------------------------------
