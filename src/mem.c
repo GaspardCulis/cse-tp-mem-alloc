@@ -109,6 +109,8 @@ typedef struct mem_iter_s {
   void *next_block;
   /// The next free block
   mem_free_block_t *next_free_block;
+  /// Wether to iteration is complete (1 if over, 0 if can continue)
+  char finished;
 } mem_iter_t;
 
 /// The item type returned by the `mem_iter_next` function.
@@ -129,19 +131,20 @@ mem_iter_t mem_iterator_init() {
   mem_iter_t iterator;
   iterator.next_block = (void *)header + sizeof(mem_header_t);
   iterator.next_free_block = header->first;
+  /// Will never have 0 iterations so we can initialize to 0
+  iterator.finished = 0;
 
   return iterator;
 }
 
 /// Returns the next block in memory as a `mem_iter_item_s`.
 /// Mutates `iterator` parameter.
-// TODO: Handle cases where the last block is a busy_block
 mem_iter_item_t mem_iter_next(mem_iter_t *iterator) {
   mem_iter_item_t item;
 
   item.addr = iterator->next_block;
   if(iterator->next_block == (void *)iterator->next_free_block) {
-    item.size = iterator->next_free_block->size + sizeof(mem_free_block_t);
+    item.size = iterator->next_free_block->size;
     item.free = 1;
 
     iterator->next_free_block = iterator->next_free_block->next;
@@ -152,6 +155,8 @@ mem_iter_item_t mem_iter_next(mem_iter_t *iterator) {
   }
 
   iterator->next_block = item.addr + item.size;
+  iterator->finished =
+      iterator->next_block == mem_space_get_addr() + mem_space_get_size();
 
   return item;
 }
@@ -166,7 +171,7 @@ void mem_free(void *zone) {
   mem_header_t *header = mem_space_get_addr();
   mem_iter_t iterator = mem_iterator_init();
 
-  while(iterator.next_free_block != NULL) {
+  while(iterator.finished == 0) {
     mem_iter_item_t item = mem_iter_next(&iterator);
 
     if(item.free == 0) {
@@ -203,7 +208,7 @@ void mem_show(void (*print)(void *, size_t, int free)) {
   print(header, sizeof(mem_header_t), 0);
 
   mem_iter_t iterator = mem_iterator_init();
-  while(iterator.next_free_block != NULL) {
+  while(iterator.finished == 0) {
     mem_iter_item_t item = mem_iter_next(&iterator);
     print(item.addr, item.size, item.free);
   }
