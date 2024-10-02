@@ -171,6 +171,7 @@ void mem_free(void *zone) {
   mem_header_t *header = mem_space_get_addr();
   mem_iter_t iterator = mem_iterator_init();
 
+  mem_free_block_t *prev_free_block = NULL;
   while(iterator.finished == 0) {
     mem_iter_item_t item = mem_iter_next(&iterator);
 
@@ -178,21 +179,26 @@ void mem_free(void *zone) {
       void *busy_block_user_addr = item.addr + sizeof(mem_busy_block_t);
       if(busy_block_user_addr == zone) {  // Found the block
         mem_free_block_t *new_free = item.addr;
-        // TODO: Handle cases where there is no next free block
+        // Could be NULL, but we handle this case later
         mem_free_block_t *next_free = iterator.next_free_block;
 
         // Re-linking
         new_free->next = next_free;
-        if(next_free->prev != NULL) {
-          next_free->prev->next = new_free;
-          new_free->prev = next_free->prev;
+        if(prev_free_block != NULL) {
+          new_free->prev = prev_free_block;
+          assert(prev_free_block->next == next_free);
+          prev_free_block->next = new_free;
         } else {
           header->first = new_free;
-          new_free->prev = NULL;
         }
-        next_free->prev = new_free;
-        new_free->size = item.size - sizeof(mem_free_block_t);
+        if(next_free != NULL) {
+          assert(next_free->prev == prev_free_block);
+          next_free->prev = new_free;
+        }
+        new_free->size = item.size;
       }
+    } else {
+      prev_free_block = item.addr;
     }
   }
 }
