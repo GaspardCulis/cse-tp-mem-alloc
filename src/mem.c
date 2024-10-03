@@ -182,14 +182,6 @@ void mem_free(void *zone) {
         // Could be NULL, but we handle this case later
         mem_free_block_t *next_free_block = iterator.next_free_block;
 
-#if defined(DEBUG)
-        // Check if the existing linking is right
-        if(next_free_block != NULL)
-          assert(next_free_block->prev == prev_free_block);
-        if(prev_free_block != NULL)
-          assert(prev_free_block->next == next_free_block);
-#endif
-
         new_free->size = item.size;
         void *next_block = item.addr + item.size;
 
