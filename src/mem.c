@@ -231,7 +231,9 @@ void mem_free(void *zone) {
 
   // If we end-up here then we haven't found a valid `busy_block` to free.
   // Notify the user
-  printf("Tried to free an invalid/already-freed pointer\n");
+#if defined(DEBUG)
+  printf("Tried to free an invalid/already-freed/0-sized pointer\n");
+#endif
 }
 
 //-------------------------------------------------------------
