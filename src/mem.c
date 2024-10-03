@@ -280,16 +280,18 @@ mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
 //-------------------------------------------------------------
 mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
                                size_t wanted_size) {
-  mem_free_block_t *best_fit = NULL;
   mem_free_block_t *current_fit = first_free_block;
+  mem_free_block_t *best_fit = NULL;
   // TODO: Think about overflows
-  long best_fit_score = current_fit->size - wanted_size;
-  while(current_fit != NULL && best_fit_score == 0) {
+  long best_fit_score =
+      current_fit->size - wanted_size +
+      1;  // + 1 for best_fit init on the `first_free_block` if score is valid
+  while(current_fit != NULL && best_fit_score != 0) {
     long current_fit_score = current_fit->size - wanted_size;
 
     // If fit_score is negative, then the current free block is too small
     // Else the greater it is, the more space is left unused
-    if(current_fit_score > 0 && current_fit_score < best_fit_score) {
+    if(current_fit_score >= 0 && current_fit_score < best_fit_score) {
       best_fit = current_fit;
       best_fit_score = current_fit_score;
     }
