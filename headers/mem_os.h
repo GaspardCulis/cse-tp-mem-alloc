@@ -31,7 +31,7 @@ typedef mem_free_block_t *(mem_fit_function_t)(mem_free_block_t *, size_t);
 
 // Definition la structure du bloc occupé
 typedef struct mem_busy_block_s {
-  /// The size of the occupied block, **not** including the size of its control struct
+  /// The total size of the occupied block (including control struct and possible extra for sys purposes)
   size_t size;  
 #if defined(DEBUG)
 #define BUSY_BLOCK_INTEGRITY_SIGNATURE 0x69042

@@ -70,6 +70,7 @@ void *mem_alloc(size_t size) {
       alloc_block->size -= alloc_size;
       //  put the busy block to the right
       new_busy_block = (void *)alloc_block + alloc_block->size;
+      new_busy_block->size = alloc_size;
     }
     // case entire allocation
     else {
@@ -80,17 +81,17 @@ void *mem_alloc(size_t size) {
         // update header elsewise
         header->first = alloc_block->next;
       new_busy_block = (mem_busy_block_t *)alloc_block;  // recast free to busy
+      new_busy_block->size = alloc_block->size;
     }
-    new_busy_block->size = size;
     return (void *)new_busy_block +
            sizeof(mem_busy_block_t);  // give user memory
   }
   return NULL;
 }
 
-//-------------------------------------------------------------
-// mem_get_size
-//-------------------------------------------------------------
+/// Returns the actual allocated size.
+/// Does not include the size of the control struct.
+/// Can include the extra size, due to controlled allocations.
 size_t mem_get_size(void *zone) {
   mem_busy_block_t *busy_block = zone - sizeof(mem_busy_block_t);
 
@@ -99,7 +100,7 @@ size_t mem_get_size(void *zone) {
   assert(busy_block->integrity_signature == BUSY_BLOCK_INTEGRITY_SIGNATURE);
 #endif
 
-  return busy_block->size;
+  return busy_block->size - sizeof(mem_busy_block_t);
 }
 
 /// An iterator control struct over the content of the memory.
@@ -149,8 +150,7 @@ mem_iter_item_t mem_iter_next(mem_iter_t *iterator) {
 
     iterator->next_free_block = iterator->next_free_block->next;
   } else {
-    item.size = ((mem_busy_block_t *)iterator->next_block)->size +
-                sizeof(mem_busy_block_t);
+    item.size = ((mem_busy_block_t *)iterator->next_block)->size;
     item.free = 0;
   }
 
