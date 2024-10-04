@@ -35,8 +35,9 @@ int main(int argc, char *argv[]) {
   }
   srand(time(NULL));
   fprintf(stderr,
-          "Test réalisant des series d'allocations / désallocations\n"
-          "afin d'obtenir une forte fragmentation de manière aléatoire\n");
+          "Test réalisant des series d'allocations / désallocations de manière "
+          "aléatoire afin de benchmarker le temps d'exécution des functions "
+          "d'allocation et de désallocation.\n");
 
   // Measure mean mem_alloc and mem_free call time
   struct timespec start, end;
