@@ -11,41 +11,21 @@
 #include "mem_os.h"
 #include "mem_space.h"
 
-//-------------------------------------------------------------
-// mem_init
-//-------------------------------------------------------------
-/**
- * Initialize the memory allocator.
- * If already init it will re-init.
- **/
 void mem_init() {
+  // Basic assertions, else nothing can be done
+  assert(mem_space_get_addr() != NULL);
   assert(sizeof(mem_header_t) < mem_space_get_size());
-
+  // Place header
   mem_header_t *header = mem_space_get_addr();
-
-  header->size = mem_space_get_size() - sizeof(mem_header_t);
+  // Create the first free block of the memory
   header->first = (void *)header + sizeof(mem_header_t);
   header->first->next = header->first->prev = NULL;
   header->first->size = mem_space_get_size() - sizeof(mem_header_t);
-  header->fit_function =
-      mem_first_fit;  // TODO: Proper default definition in mem_os.h
+  // Fit strategy
+  header->fit_function = mem_first_fit;
 }
 
-//-------------------------------------------------------------
-// mem_alloc
-//-------------------------------------------------------------
-/**
- * Allocate a bloc of the given size.
- **/
 void *mem_alloc(size_t size) {
-  // TODO: define the behavior for alloc(0)
-  if(size == 0) return NULL;
-
-  // inverse usage, precised in man alloc
-  if(size < 0)
-    size = mem_space_get_size() - size + 1 - sizeof(mem_header_t) -
-           sizeof(mem_busy_block_t);
-
   // get header
   mem_header_t *header = mem_space_get_addr();
 
@@ -89,9 +69,6 @@ void *mem_alloc(size_t size) {
   return NULL;
 }
 
-/// Returns the actual allocated size.
-/// Does not include the size of the control struct.
-/// Can include the extra size, due to controlled allocations.
 size_t mem_get_size(void *zone) {
   mem_busy_block_t *busy_block = zone - sizeof(mem_busy_block_t);
 
@@ -103,8 +80,8 @@ size_t mem_get_size(void *zone) {
   return busy_block->size - sizeof(mem_busy_block_t);
 }
 
-/// An iterator control struct over the content of the memory.
-/// Constructed using `mem_iterator_init`
+/// Iterator control struct over the content of the memory.
+/// Constructed using `mem_iterator_init`.
 typedef struct mem_iter_s {
   /// The block directly next to the previous one, could be free or busy
   void *next_block;
@@ -115,7 +92,7 @@ typedef struct mem_iter_s {
 } mem_iter_t;
 
 /// The item type returned by the `mem_iter_next` function.
-/// Represents a block of memory
+/// Represents a block of memory.
 typedef struct mem_iter_item_s {
   /// The address of the block, including its control struct
   void *addr;
@@ -161,12 +138,6 @@ mem_iter_item_t mem_iter_next(mem_iter_t *iterator) {
   return item;
 }
 
-//-------------------------------------------------------------
-// mem_free
-//-------------------------------------------------------------
-/**
- * Free an allocated block.
- **/
 void mem_free(void *zone) {
   mem_header_t *header = mem_space_get_addr();
   mem_iter_t iterator = mem_iterator_init();
@@ -236,10 +207,6 @@ void mem_free(void *zone) {
 #endif
 }
 
-//-------------------------------------------------------------
-// Itérateur(parcours) sur le contenu de l'allocateur
-// mem_show
-//-------------------------------------------------------------
 void mem_show(void (*print)(void *, size_t, int free)) {
   mem_header_t *header = mem_space_get_addr();
 
@@ -253,17 +220,11 @@ void mem_show(void (*print)(void *, size_t, int free)) {
   }
 }
 
-//-------------------------------------------------------------
-// mem_fit
-//-------------------------------------------------------------
 void mem_set_fit_handler(mem_fit_function_t *mff) {
   mem_header_t *header = mem_space_get_addr();
   header->fit_function = mff;
 }
 
-//-------------------------------------------------------------
-// Stratégies d'allocation
-//-------------------------------------------------------------
 mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
                                 size_t wanted_size) {
   mem_free_block_t *current_block = first_free_block;
@@ -271,7 +232,7 @@ mem_free_block_t *mem_first_fit(mem_free_block_t *first_free_block,
     current_block = current_block->next;
   return current_block;
 }
-//-------------------------------------------------------------
+
 mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
                                size_t wanted_size) {
   mem_free_block_t *current_fit = first_free_block;
@@ -295,7 +256,6 @@ mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
   return best_fit;
 }
 
-//-------------------------------------------------------------
 mem_free_block_t *mem_worst_fit(mem_free_block_t *first_free_block,
                                 size_t wanted_size) {
   mem_free_block_t *current_block = first_free_block;  // iterate through memory
