@@ -51,7 +51,7 @@ void *mem_alloc(size_t size) {
       //  put the busy block to the right
       new_busy_block = (alloc_block->size + (void *)alloc_block);
       new_busy_block->size = alloc_size;
-      new_busy_block->prev = alloc_block; // link the busy to the found block
+      new_busy_block->prev = alloc_block;  // link the busy to the found block
     }
     // case entire allocation
     else {
@@ -66,8 +66,14 @@ void *mem_alloc(size_t size) {
         alloc_block->next->prev = alloc_block->prev;
       new_busy_block = (mem_busy_block_t *)alloc_block;  // recast free to busy
       new_busy_block->size = alloc_block->size;
-      new_busy_block->prev = alloc_block->prev; // link the busy to the previous of the free block
+      new_busy_block->prev =
+          alloc_block->prev;  // link the busy to the previous of the free block
     }
+
+#if defined(DEBUG)
+    new_busy_block->integrity_signature = BUSY_BLOCK_INTEGRITY_SIGNATURE;
+#endif
+
     return (void *)new_busy_block +
            sizeof(mem_busy_block_t);  // give user memory
   }
