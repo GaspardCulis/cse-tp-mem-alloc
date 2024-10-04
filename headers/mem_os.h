@@ -30,7 +30,9 @@ typedef mem_free_block_t *(mem_fit_function_t)(mem_free_block_t *, size_t);
 /// Occupied memory control struct
 typedef struct mem_busy_block_s {
   /// The total size of the occupied block (including control struct and possible extra for control purposes).
-  size_t size;  
+  size_t size;
+  /// lolz
+  mem_free_block_t* prev;
 #if defined(DEBUG)
 #define BUSY_BLOCK_INTEGRITY_SIGNATURE 0x69042
   /// Debug field to control wether a pointer to a `mem_busy_block` is valid
