@@ -23,6 +23,7 @@ tests/test_frag
 tests/test_base_bzero
 tests/test_cheese_bzero
 tests/test_fusion_bzero
+tests/test_perf
 tests_c/test_base
 tests_c/test_base_bzero
 tests_c/test_cheese
@@ -31,6 +32,7 @@ tests_c/test_frag
 tests_c/test_fusion
 tests_c/test_fusion_bzero
 tests_c/test_init
+tests_c/test_perf
 /build*
 .cache
 compile_commands.json
