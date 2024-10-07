@@ -17,7 +17,7 @@ LDFLAGS=
 
 ###############################################################################
 # targets
-TESTS=test_init test_fusion test_fusion_bzero test_frag test_base test_base_bzero test_cheese test_cheese_bzero test_perf test_misc
+TESTS=test_init test_fusion test_fusion_bzero test_frag test_base test_base_bzero test_cheese test_cheese_bzero test_perf test_memory_usage test_misc
 PROGRAMS=$(TESTS)
 LIB_DIR=../libs
 
