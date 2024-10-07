@@ -151,71 +151,67 @@ mem_iter_item_t mem_iter_next(mem_iter_t *iterator) {
 
 void mem_free(void *zone) {
   mem_header_t *header = mem_space_get_addr();
-  mem_iter_t iterator = mem_iterator_init();
+  mem_busy_block_t *busy_block = zone - sizeof(mem_busy_block_t);
 
-  mem_free_block_t *prev_free_block = NULL;
-  while(iterator.finished == 0) {
-    mem_iter_item_t item = mem_iter_next(&iterator);
+#if defined(DEBUG)
+  // Check if the `mem_busy_block_s` we got from the `zone` pointer is valid
+  if(busy_block->integrity_signature != BUSY_BLOCK_INTEGRITY_SIGNATURE) {
+    printf("Tried to free an invalid/already-freed/0-sized pointer\n");
+    return;
+  }
+#endif
 
-    if(item.free == 0) {
-      void *busy_block_user_addr = item.addr + sizeof(mem_busy_block_t);
-      if(busy_block_user_addr == zone) {  // Found the block
-        mem_free_block_t *new_free = item.addr;
-        // Could be NULL, but we handle this case later
-        mem_free_block_t *next_free_block = iterator.next_free_block;
+  void *next_block = (void *)busy_block + busy_block->size;
+  mem_free_block_t *prev_free_block = busy_block->prev;
+  mem_free_block_t *next_free_block =
+      prev_free_block != NULL ? prev_free_block->next : header->first;
 
-        new_free->size = item.size;
-        void *next_block = item.addr + item.size;
+  mem_free_block_t *new_free = (mem_free_block_t *)busy_block;
+  new_free->size = busy_block->size;
 
-        // Link right
-        if(next_free_block != NULL) {
-          if(next_block == next_free_block) {
-            // The next block is free, merge them by extending `new_free`
-            new_free->size += next_free_block->size;
-            new_free->next = next_free_block->next;
-            if(next_free_block->next != NULL)
-              next_free_block->next->prev = new_free;
-            // We leave the old `next_free` as-is in memory
-          } else {
-            new_free->next = next_free_block;
-            next_free_block->prev = new_free;
-          }
-        } else {
-          new_free->next = NULL;
-        }
-
-        // Link left
-        if(prev_free_block != NULL) {
-          void *prev_free_next_block =
-              (void *)prev_free_block + prev_free_block->size;
-          if(prev_free_next_block == new_free) {
-            // The next block is free, merge them by extending `prev_free_block`
-            prev_free_block->next = new_free->next;
-            prev_free_block->size += new_free->size;
-            if(new_free->next != NULL) new_free->next->prev = prev_free_block;
-            // We leave the `new_free` as is in memory
-          } else {
-            new_free->prev = prev_free_block;
-            prev_free_block->next = new_free;
-          }
-        } else {
-          new_free->prev = NULL;
-          header->first = new_free;
-        }
-
-        // We're done, return
-        return;
-      }
+  // Link right
+  if(next_free_block != NULL) {
+    if(next_block == next_free_block) {
+      // The next block is free, merge them by extending `new_free`
+      new_free->size += next_free_block->size;
+      new_free->next = next_free_block->next;
+      if(next_free_block->next != NULL) next_free_block->next->prev = new_free;
+      // We leave the old `next_free` as-is in memory
     } else {
-      prev_free_block = item.addr;
+      new_free->next = next_free_block;
+      next_free_block->prev = new_free;
     }
+  } else {
+    new_free->next = NULL;
   }
 
-  // If we end-up here then we haven't found a valid `busy_block` to free.
-  // Notify the user
-#if defined(DEBUG)
-  printf("Tried to free an invalid/already-freed/0-sized pointer\n");
-#endif
+  // Link left
+  if(prev_free_block != NULL) {
+    void *prev_free_next_block =
+        (void *)prev_free_block + prev_free_block->size;
+    if(prev_free_next_block == new_free) {
+      // The next block is free, merge them by extending `prev_free_block`
+      prev_free_block->next = new_free->next;
+      prev_free_block->size += new_free->size;
+      if(new_free->next != NULL) new_free->next->prev = prev_free_block;
+      // We leave the `new_free` as is in memory
+      new_free = prev_free_block;
+    } else {
+      new_free->prev = prev_free_block;
+      prev_free_block->next = new_free;
+    }
+  } else {
+    new_free->prev = NULL;
+    header->first = new_free;
+  }
+
+  // Maybe link possible next busy_block->prev
+  void *new_next_block = (void *)new_free + new_free->size;
+  void *mem_end = mem_space_get_addr() + mem_space_get_size();
+  if((new_free->next != new_next_block) ||
+     (new_free->next == NULL && next_block != mem_end)) {
+    ((mem_busy_block_t *)new_next_block)->prev = new_free;
+  }
 }
 
 void mem_show(void (*print)(void *, size_t, int free)) {
