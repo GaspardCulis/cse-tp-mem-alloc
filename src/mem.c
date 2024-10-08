@@ -63,6 +63,11 @@ void *mem_alloc(size_t size) {
       new_busy_block = (mem_busy_block_t *)alloc_block;  // recast free to busy
       new_busy_block->size = alloc_block->size;
     }
+
+#if defined(DEBUG)
+    new_busy_block->integrity_signature = BUSY_BLOCK_INTEGRITY_SIGNATURE;
+#endif
+
     return (void *)new_busy_block +
            sizeof(mem_busy_block_t);  // give user memory
   }
@@ -238,8 +243,7 @@ mem_free_block_t *mem_best_fit(mem_free_block_t *first_free_block,
   mem_free_block_t *current_fit = first_free_block;
   mem_free_block_t *best_fit = NULL;
   // memory can be full
-  if(current_fit == NULL)
-    return NULL;
+  if(current_fit == NULL) return NULL;
   long long best_fit_score =
       current_fit->size - wanted_size +
       1;  // + 1 for best_fit init on the `first_free_block` if score is valid
