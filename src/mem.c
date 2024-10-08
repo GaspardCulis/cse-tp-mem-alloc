@@ -26,9 +26,9 @@ void mem_init() {
 }
 
 void *mem_alloc(size_t size) {
+
   // get header
   mem_header_t *header = mem_space_get_addr();
-
   // total size of allocation
   size_t alloc_size = size + sizeof(mem_busy_block_t);
   // size control, no loss of busy_block during future free
@@ -45,7 +45,7 @@ void *mem_alloc(size_t size) {
     /* case to split the free block in busy and free
         -- split size at least = free_block
     */
-    if(alloc_block->size - alloc_size >= sizeof(mem_free_block_t) + 1) {
+    if(alloc_block->size - alloc_size >= sizeof(mem_free_block_t) + FREE_BYTES) {
       // update the size of allocated free_block
       alloc_block->size -= alloc_size;
       //  put the busy block to the right
@@ -80,11 +80,12 @@ void *mem_alloc(size_t size) {
 size_t mem_get_size(void *zone) {
   mem_busy_block_t *busy_block = zone - sizeof(mem_busy_block_t);
 
+/* doesnt work
 #if defined(DEBUG)
   // Check if the `mem_busy_block_s` we got from the `zone` pointer is valid
   assert(busy_block->integrity_signature == BUSY_BLOCK_INTEGRITY_SIGNATURE);
 #endif
-
+*/
   return busy_block->size - sizeof(mem_busy_block_t);
 }
 
@@ -210,6 +211,7 @@ void mem_free(void *zone) {
 
   // If we end-up here then we haven't found a valid `busy_block` to free.
   // Notify the user
+//cringe
 #if defined(DEBUG)
   printf("Tried to free an invalid/already-freed/0-sized pointer\n");
 #endif

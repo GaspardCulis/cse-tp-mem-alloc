@@ -38,7 +38,7 @@ int will_split(size_t size) {
       return 1;
   return 0;
 }
-// external frag computing:
+// external frag computation:
 long calc_ext(){
   long total_external = 0;
   mem_header_t* header = mem_space_get_addr();
@@ -52,8 +52,26 @@ long calc_ext(){
 }
 
 int main(int argc, char *argv[]) {
-  fprintf(stderr, "\nDoing %d test cycles for a given fit function.\nAlloctions per cycle: <= %d\n", NUM_CYCLES, NUM_ALLOCS);
+  fprintf(stderr,
+          "Test making allocs and frees on random"
+          "to benchmark the fragmentation of memory"
+          "with different fit functions.\n");
+  fprintf(stderr, "\nDoing %d test cycles for a given fit function (first_fit by default).\nAlloctions per cycle: <= %d\n", NUM_CYCLES, NUM_ALLOCS);
   srand(time(NULL));
+  mem_fit_function_t* fit = mem_first_fit;
+  if(argc == 2) {
+    if(strcmp(argv[1], "first") == 0) {
+      fit = mem_first_fit;
+      printf("Called on first fit strategy\n");
+    } else if(strcmp(argv[1], "best") == 0) {
+      fit = mem_best_fit;
+      printf("Called on best fit strategy\n");
+    } else if(strcmp(argv[1], "worst") == 0) {
+      fit = mem_worst_fit;
+      printf("Called on worst fit strategy\n");
+    }
+  }
+  // units to make stats
   double user_proportion = 0;
   double sys_proportion = 0;
   double ext_frag_proportion = 0;
@@ -62,17 +80,12 @@ int main(int argc, char *argv[]) {
   long avg_sys_bytes = 0;
   long avg_ext_bytes = 0;
   long avg_int_bytes = 0;
+
+  double mem_size = (double) mem_space_get_size();
+
   for(int cycle = 0; cycle<NUM_CYCLES; cycle++){
     mem_init();
-    if(argc == 2) {
-      if(strcmp(argv[1], "first") == 0) {
-        mem_set_fit_handler(mem_first_fit);
-      } else if(strcmp(argv[1], "best") == 0) {
-        mem_set_fit_handler(mem_best_fit);
-      } else if(strcmp(argv[1], "worst") == 0) {
-        mem_set_fit_handler(mem_worst_fit);
-      }
-    }
+    mem_set_fit_handler(fit);
     // measure memory consommation
     long total_sys = (long)(sizeof(mem_header_t) + sizeof(mem_free_block_t));
     int free;
@@ -128,18 +141,20 @@ int main(int argc, char *argv[]) {
     avg_ext_bytes+=total_ext;
 
     user_proportion += ((double)total_user)/((double)(total_int + total_sys + total_user));
+    //user_proportion += ((double)total_user)/mem_size;
     sys_proportion += ((double)total_sys)/((double)(total_int + total_sys + total_user));
-    ext_frag_proportion += ((double)total_ext/((double)(mem_space_get_size())));
-    int_frag_proportion += ((double)total_int/((double)(mem_space_get_size())));
+    //sys_proportion += ((double)total_sys)/mem_size;
+    ext_frag_proportion += ((double)total_ext)/mem_size;
+    int_frag_proportion += ((double)total_int)/((double)total_user);
   }
   printf("\n------------------------------- STATS --------------------------------\n");
   printf("-- User memory consomation on average: %.4lf %% ~ %ld bytes\n", user_proportion*100/NUM_CYCLES, 
             avg_usr_bytes/(long)NUM_CYCLES);
   printf("-- System memory consomation on average: %.4lf %% ~ %ld bytes\n", sys_proportion*100/NUM_CYCLES, 
             avg_sys_bytes/(long)NUM_CYCLES);
-  printf("-- External memory fragmentation on average: %.4lf %% ~ %ld bytes\n", ext_frag_proportion*100/NUM_CYCLES, 
+  printf("-- External memory fragmentation on average (in relation to the entire memory): %.4lf %% ~ %ld bytes\n", ext_frag_proportion*100/NUM_CYCLES, 
             avg_ext_bytes/(long)NUM_CYCLES);
-  printf("-- Internal memory fragmentation on average: %.4lf %% ~ %ld bytes\n", int_frag_proportion*100/NUM_CYCLES, 
+  printf("-- Internal memory fragmentation on average (in relation to user memory): %.4lf %% ~ %ld bytes\n", int_frag_proportion*100/NUM_CYCLES, 
             avg_int_bytes/(long)NUM_CYCLES);
   // End
   return 0;
