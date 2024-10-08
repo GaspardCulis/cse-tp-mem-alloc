@@ -10,6 +10,9 @@
 // include stdlib pour definition du type size_t
 #include <stdlib.h>
 
+// Macross for mem_alloc gesture; defines the minimum free bytes in a free block
+#define FREE_BYTES 0 
+
 /// Initiallize the memory control structures.
 /// Deafault allocation strategy is `mem_first_fit`.
 void mem_init(void);
