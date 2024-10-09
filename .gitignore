@@ -24,6 +24,7 @@ tests/test_base_bzero
 tests/test_cheese_bzero
 tests/test_fusion_bzero
 tests/test_perf
+tests/test_memory_usage
 tests/test_misc
 tests_c/test_base
 tests_c/test_base_bzero

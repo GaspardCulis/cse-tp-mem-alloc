@@ -26,9 +26,9 @@ void mem_init() {
 }
 
 void *mem_alloc(size_t size) {
+
   // get header
   mem_header_t *header = mem_space_get_addr();
-
   // total size of allocation
   size_t alloc_size = size + sizeof(mem_busy_block_t);
   // size control, no loss of busy_block during future free
@@ -39,17 +39,17 @@ void *mem_alloc(size_t size) {
   mem_free_block_t *alloc_block =
       header->fit_function(header->first, alloc_size);
 
-  // if size is suitable
+  // if size is suitable or the header isn't empty
   if(alloc_block != NULL) {
     mem_busy_block_t *new_busy_block;
     /* case to split the free block in busy and free
         -- split size at least = free_block
     */
-    if(alloc_block->size - alloc_size >= sizeof(mem_free_block_t)) {
+    if(alloc_block->size - alloc_size >= sizeof(mem_free_block_t) + FREE_BYTES) {
       // update the size of allocated free_block
       alloc_block->size -= alloc_size;
       //  put the busy block to the right
-      new_busy_block = (void *)alloc_block + alloc_block->size;
+      new_busy_block = (alloc_block->size + (void *)alloc_block);
       new_busy_block->size = alloc_size;
     }
     // case entire allocation
@@ -60,6 +60,9 @@ void *mem_alloc(size_t size) {
       else
         // update header elsewise
         header->first = alloc_block->next;
+      // relink next block
+      if(alloc_block->next != NULL)
+        alloc_block->next->prev = alloc_block->prev;
       new_busy_block = (mem_busy_block_t *)alloc_block;  // recast free to busy
       new_busy_block->size = alloc_block->size;
     }
@@ -76,6 +79,7 @@ void *mem_alloc(size_t size) {
 
 size_t mem_get_size(void *zone) {
   mem_busy_block_t *busy_block = zone - sizeof(mem_busy_block_t);
+
 
 #if defined(DEBUG)
   // Check if the `mem_busy_block_s` we got from the `zone` pointer is valid
@@ -207,6 +211,7 @@ void mem_free(void *zone) {
 
   // If we end-up here then we haven't found a valid `busy_block` to free.
   // Notify the user
+//cringe
 #if defined(DEBUG)
   printf("Tried to free an invalid/already-freed/0-sized pointer\n");
 #endif

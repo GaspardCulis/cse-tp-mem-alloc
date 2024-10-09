@@ -10,7 +10,7 @@
 #include <stddef.h>
 
 /* -----------------------------------------------*/
-/* Interface utilisateur de votre allocateur      */
+/*                 User Interface                 */
 /* -----------------------------------------------*/
 
 /// @brief Allocate a block of memory of a given size.
