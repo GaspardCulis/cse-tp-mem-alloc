@@ -1,4 +1,3 @@
-// WTF wont compile if I don't define this shit
 #define _XOPEN_SOURCE 500
 
 #include <assert.h>

@@ -45,11 +45,11 @@ void *mem_alloc(size_t size) {
     /* case to split the free block in busy and free
         -- split size at least = free_block
     */
-    if(alloc_block->size - alloc_size >= sizeof(mem_free_block_t) + FREE_BYTES) {
+    if((alloc_block->size - alloc_size) >= 2*sizeof(mem_free_block_t) + FREE_BYTES) {
       // update the size of allocated free_block
       alloc_block->size -= alloc_size;
       //  put the busy block to the right
-      new_busy_block = (alloc_block->size + (void *)alloc_block);
+      new_busy_block = ((void *)alloc_block + alloc_block->size);
       new_busy_block->size = alloc_size;
     }
     // case entire allocation
