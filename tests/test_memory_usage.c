@@ -53,8 +53,8 @@ long calc_ext(){
 
 int main(int argc, char *argv[]) {
   fprintf(stderr,
-          "Test making allocs and frees on random"
-          "to benchmark the fragmentation of memory"
+          "Test making allocs and frees on random "
+          "to benchmark the fragmentation of memory "
           "with different fit functions.\n");
   fprintf(stderr, "\nDoing %d test cycles for a given fit function (first_fit by default).\nAlloctions per cycle: <= %d\n", NUM_CYCLES, NUM_ALLOCS);
   srand(time(NULL));
@@ -148,9 +148,9 @@ int main(int argc, char *argv[]) {
     int_frag_proportion += ((double)total_int)/((double)total_user);
   }
   printf("\n------------------------------- STATS --------------------------------\n");
-  printf("-- User memory consomation on average: %.4lf %% ~ %ld bytes\n", user_proportion*100/NUM_CYCLES, 
+  printf("-- User memory consuption on average: %.4lf %% ~ %ld bytes\n", user_proportion*100/NUM_CYCLES, 
             avg_usr_bytes/(long)NUM_CYCLES);
-  printf("-- System memory consomation on average: %.4lf %% ~ %ld bytes\n", sys_proportion*100/NUM_CYCLES, 
+  printf("-- System memory consuption on average: %.4lf %% ~ %ld bytes\n", sys_proportion*100/NUM_CYCLES, 
             avg_sys_bytes/(long)NUM_CYCLES);
   printf("-- External memory fragmentation on average (in relation to the entire memory): %.4lf %% ~ %ld bytes\n", ext_frag_proportion*100/NUM_CYCLES, 
             avg_ext_bytes/(long)NUM_CYCLES);
